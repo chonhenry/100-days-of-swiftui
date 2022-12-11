@@ -10,24 +10,45 @@ import SwiftUI
 struct ContentView: View {
     @State private var showingScore = false
     @State private var scoreTitle = ""
+    @State private var score = 0
+    @State private var correct = true
+    @State private var selected = 0
+    @State private var questionsAsked = 0
+    @State private var gameOver = false
     
     @State private var countries = ["Estonia", "France", "Germany", "Ireland", "Italy", "Nigeria", "Poland", "Russia", "Spain", "UK", "US"].shuffled()
     @State private var correctAnswer = Int.random(in: 0...2)
     
     func flagTapped(_ number: Int) {
-        print(correctAnswer)
+        selected = number
+        
         if number == correctAnswer {
             scoreTitle = "Correct"
+            score += 1
+            correct = true
         } else {
             scoreTitle = "Wrong"
+            correct = false
         }
         
-        showingScore = true
+        questionsAsked += 1
+        
+        if (questionsAsked == 3) {
+            gameOver = true
+        } else {
+            showingScore = true
+        }
     }
     
     func askQuestion() {
         countries = countries.shuffled()
         correctAnswer = Int.random(in: 0...2)
+    }
+    
+    func reset() {
+        score = 0
+        questionsAsked = 0
+        askQuestion()
     }
     
     var body: some View {
@@ -73,7 +94,7 @@ struct ContentView: View {
                 Spacer()
                 Spacer()
                 
-                Text("Score: ???")
+                Text("Score: \(score)")
                     .foregroundColor(.white)
                     .font(.title.bold())
                 
@@ -84,7 +105,18 @@ struct ContentView: View {
         .alert(scoreTitle, isPresented: $showingScore) {
             Button("Continue", action: askQuestion)
         } message: {
-            Text("Your score is ???")
+            VStack {
+                if correct == true{
+                    Text("Your score is \(score)")
+                } else {
+                    Text("Wrong! That’s the flag of \(countries[selected]) \n Your score is \(score)")
+                }
+            }
+        }
+        .alert("Game over", isPresented: $gameOver) {
+            Button("Restart Game", action: reset)
+        } message: {
+            Text("Your final score is \(score)")
         }
     }
 }
